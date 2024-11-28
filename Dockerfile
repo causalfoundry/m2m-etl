@@ -24,4 +24,4 @@ COPY ./src ./
 USER root
 USER mambauser
 
-CMD ["python", "-c", "print('hello world')"]
+CMD ["python", "main.py"]

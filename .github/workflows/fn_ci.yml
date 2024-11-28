@@ -1,0 +1,51 @@
+name: Test, Lint, Build (and Push)
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+env:
+  TAG: ${{ inputs.tag }}
+  PROJECT_NUMBER: 621908232922
+  SERVICE_ACCOUNT: ci-svn@m2mgcpetl.iam.gserviceaccount.com
+  GCP_PROJECT_ID: m2mgcpetl
+  REGION: africa-south1
+  REGISTRY: africa-south1-docker.pkg.dev
+  IMAGE: m2mgcpetl/etl/etl
+
+jobs:
+  test:
+    name: Test 
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Run ETL Tests
+        shell: bash -leo pipefail {0}
+        timeout-minutes: 10
+        working-directory: .
+        run: |
+          make check
+
+  build-push:
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
+    name: Build & Push
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Build/Push Images
+        uses: ./.github/actions/buildpush

@@ -1,0 +1,21 @@
+name: Deploy to Dev
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "**"
+
+jobs:
+  ci:
+    name: Run CI
+    uses: ./.github/workflows/fn_ci.yml
+    with:
+      push-artifacts: "true"
+      tag: ${{ github.sha }}-rc # rc = release candidate (to distinguish from prod images)
+
+  deploy:
+    needs: [ci]
+    name: deploy run & scheduler
+    run: echo 'deploying'

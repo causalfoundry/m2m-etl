@@ -1,0 +1,60 @@
+name: build & push
+description: Build all deployable binaries and docker images, push if configured
+
+runs:
+  using: composite
+  steps:
+    - name: Build 
+      working-directory: ./
+      shell: bash -leo pipefail {0}
+      run: make build-image
+
+    - uses: 'actions/checkout@v4'
+
+    - name: Authenticate to Google Cloud
+      id: 'auth'
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
+        service_account: ${{ env.SERVICE_ACCOUNT }}
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        version: 'latest'
+        project_id: ${{ env.GCP_PROJECT_ID }}
+
+    - name: Configure Docker to use gcloud as a credential helper
+      shell: bash
+      run: |
+        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+    - name: Push Docker Image
+      shell: bash
+      run: |
+        echo "pushing ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}"
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
+
+    - name: deploy cloud run
+      shell: bash 
+      run: |
+        gcloud run deploy etl \
+          --image gcr.io/$PROJECT_ID/$IMAGE:$TAG \
+          --platform managed \
+          --region $REGION \
+          --memory 4Gi \
+          --cpu 2
+
+    - name: deploy scheduler
+      shell: bash 
+      run: |
+        SERVICE_URL=$(gcloud run services describe $SERVICE_NAME \
+          --platform managed \
+          --region $REGION \
+          --format="value(status.url)")
+
+        gcloud scheduler jobs create http etl \
+          --schedule "0 2 * * *" \
+          --uri $SERVICE_URL \
+          --http-method GET \
+          --time-zone "UTC"
