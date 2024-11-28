@@ -14,8 +14,3 @@ jobs:
     with:
       push-artifacts: "true"
       tag: ${{ github.sha }} # rc = release candidate (to distinguish from prod images)
-
-  deploy:
-    needs: [ci]
-    name: deploy run & scheduler
-    run: echo 'deploying'
