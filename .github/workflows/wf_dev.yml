@@ -12,5 +12,4 @@ jobs:
     name: Run CI
     uses: ./.github/workflows/fn_ci.yml
     with:
-      push-artifacts: "true"
       tag: ${{ github.sha }}-rc # rc = release candidate (to distinguish from prod images)
