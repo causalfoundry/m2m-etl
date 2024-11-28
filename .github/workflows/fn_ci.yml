@@ -40,7 +40,7 @@ jobs:
       contents: read  # This is required for actions/checkout
     name: Build & Push
     needs: [test]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
