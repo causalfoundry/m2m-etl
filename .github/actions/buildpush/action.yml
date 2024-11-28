@@ -1,5 +1,5 @@
 name: build & push
-description: Build all deployable binaries and docker images, push if configured
+description: Build and deploy ETL
 
 runs:
   using: composite
