@@ -15,7 +15,9 @@ spec:
               limits:
                 cpu: <cpu>
                 memory: <memory>
-            
+            env:
+              - name: input
+                value: ""
           maxRetries: 3
           serviceAccountName: <service_account>
           timeoutSeconds: 600
