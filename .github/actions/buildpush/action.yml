@@ -38,9 +38,8 @@ runs:
     - name: deploy cloud run
       shell: bash 
       run: |
-        gcloud run deploy etl \
+        gcloud run jobs create etl \
           --image ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }} \
-          --platform managed \
           --region $REGION \
           --memory 4Gi \
           --cpu 2
@@ -48,13 +47,13 @@ runs:
     - name: deploy scheduler
       shell: bash 
       run: |
-        SERVICE_URL=$(gcloud run services describe $SERVICE_NAME \
-          --platform managed \
-          --region $REGION \
-          --format="value(status.url)")
+        REGION=${{ env.REGION }}
+        PROJECT_ID=${{ env.GCP_PROJECT_ID }}
+        SERVICE_ACCOUNT=${{ env.SERVICE_ACCOUNT }}
 
-        gcloud scheduler jobs create http etl \
-          --schedule "0 2 * * *" \
-          --uri $SERVICE_URL \
-          --http-method GET \
-          --time-zone "UTC"
+        gcloud scheduler jobs create http etl-cron \
+          --location $REGION \
+          --schedule="0 2 * * *" \
+          --uri="https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/etl:run" \
+          --http-method POST \
+          --oauth-service-account-email $SERVICE_ACCOUNT
