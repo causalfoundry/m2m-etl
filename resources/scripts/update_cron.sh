@@ -9,9 +9,9 @@ env
 
 yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     # Extract schedule and job_name for each scheduler
-    SCHEDULE=$(yq eval ".${SCHEDULER}.schedule" $file_path)
-    CPU=$(yq eval ".${SCHEDULER}.cpu" $file_path)
-    MEMORY=$(yq eval ".${SCHEDULER}.memory" $file_path)
+    SCHEDULE=$(yq eval ".${NAME}.schedule" $file_path)
+    CPU=$(yq eval ".${NAME}.cpu" $file_path)
+    MEMORY=$(yq eval ".${NAME}.memory" $file_path)
     URI="https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/$JOB:run" \
 
     # update job
@@ -27,17 +27,17 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     gcloud run jobs replace ./resources/$NAME.yml --region $REGION
 
     # update scheduler
-    if gcloud scheduler jobs describe "$SCHEDULER" --location europe-west1 > /dev/null 2>&1; then
-      echo "Scheduler job '$SCHEDULER' exists. Updating..."
-      gcloud scheduler jobs update http "$SCHEDULER" \
+    if gcloud scheduler jobs describe "$NAME" --location europe-west1 > /dev/null 2>&1; then
+      echo "Scheduler job '$NAME' exists. Updating..."
+      gcloud scheduler jobs update http "$NAME" \
         --location europe-west1 \
         --schedule "$SCHEDULE" \
         --uri "$URI" \
         --http-method POST \
         --oauth-service-account-email "$SERVICE_ACCOUNT"
     else
-      echo "Scheduler job '$SCHEDULER' does not exist. Creating..."
-      gcloud scheduler jobs create http "$SCHEDULER" \
+      echo "Scheduler job '$NAME' does not exist. Creating..."
+      gcloud scheduler jobs create http "$NAME" \
         --location europe-west1 \
         --schedule "$SCHEDULE" \
         --uri "$URI" \
