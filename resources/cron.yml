@@ -1,0 +1,5 @@
+etl:
+  schedule: '0 2 * * *'
+  timezone: utc
+  cpu: 2
+  memory: 4Gi

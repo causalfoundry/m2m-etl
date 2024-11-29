@@ -42,4 +42,4 @@ runs:
         IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
         PROJECT_ID=${{ env.GCP_PROJECT_ID }}
         SERVICE_ACCOUNT=${{ env.SERVICE_ACCOUNT }}
-        ./resources/scripts/update_cron.sh ./resources/scheduler.yml
+        ./resources/scripts/update_cron.sh ./resources/cron.yml

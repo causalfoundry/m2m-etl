@@ -7,18 +7,24 @@ set -e
 # some env are inherent from the parent process
 env
 
-yq eval '. | keys' $file_path | sed 's/- //' | while read -r SCHEDULER; do
+yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     # Extract schedule and job_name for each scheduler
     SCHEDULE=$(yq eval ".${SCHEDULER}.schedule" $file_path)
-    JOB=$(yq eval ".${SCHEDULER}.job" $file_path)
+    CPU=$(yq eval ".${SCHEDULER}.cpu" $file_path)
+    MEMORY=$(yq eval ".${SCHEDULER}.memory" $file_path)
     URI="https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/$JOB:run" \
 
     # update job
-    # - update the job yaml file
-    sed -i "s|<image>|$IMAGE|g" ./resources/jobs/$JOB.yml
-    sed -i "s|<project_id>|$PROJECT_ID|g" ./resources/jobs/$JOB.yml
-    sed -i "s|<service_account>|$SERVICE_ACCOUNT|g" ./resources/jobs/$JOB.yml
-    gcloud run jobs replace ./resources/jobs/$JOB.yml --region $REGION
+    yq "
+      .metadata.name=\"$NAME\" |
+      .metadata.namespace=\"$PROJECT_ID\" |
+      .spec.template.spec.containers[0].image=\"$IMAGE\" |
+      .spec.template.spec.containers[0].resources.limits.cpu=$CPU |
+      .spec.template.spec.containers[0].resources.limits.memory=\"$MEMORY\" |
+      .spec.template.spec.serviceAccountName=\"$SERVICE_ACCOUNT\"
+    " ./resources/job_template.yml > ./resources/$NAME.yml
+
+    gcloud run jobs replace ./resources/$NAME.yml --region $REGION
 
     # update scheduler
     if gcloud scheduler jobs describe "$SCHEDULER" --location europe-west1 > /dev/null 2>&1; then

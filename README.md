@@ -4,6 +4,10 @@ This repo contains ETL code for various data source for m2m.
 Each merge / push will trigger CI/CD pipeline to build the code into docker container, and publish to image registry on the cloud.
 And the containers are run on `Cloud Run`, and is scheduled with `Cloud Scheduler`.
 
+### Infra Intro
+The pipeline is packaged into docker container, and deployed as `GCP Cloud Run Job`, which is then triggered by `GCP Cloud Scheduler`.
+in the `./resources` folder, `scheduler.yml` file defines the cron job configuration
+
 ### Cloud Run deployment example
 ```
 gcloud run deploy SERVICE_NAME \

@@ -1,7 +1,7 @@
 apiVersion: run.googleapis.com/v1
 kind: Job
 metadata:
-  name: etl
+  name: <name>
   namespace: <project_id>
 spec:
   template:
@@ -13,8 +13,8 @@ spec:
           - image: <image>
             resources:
               limits:
-                cpu: '2'
-                memory: 4Gi
+                cpu: <cpu>
+                memory: <memory>
           maxRetries: 3
           serviceAccountName: <service_account>
-          timeoutSeconds: '600'
+          timeoutSeconds: 600

@@ -1,4 +1,0 @@
-etl-cron:
-  schedule: '0 2 * * *'
-  job: etl # need to match with job.yml
-  timezone: utc
