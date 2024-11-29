@@ -12,7 +12,7 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     SCHEDULE=$(yq eval ".${NAME}.schedule" $file_path)
     CPU=$(yq eval ".${NAME}.cpu" $file_path)
     MEMORY=$(yq eval ".${NAME}.memory" $file_path)
-    ENV=$(yq eval ".{NAME}.env" $file_path)
+    ENV=$(yq eval ".${NAME}.env" $file_path)
     URI="https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/$JOB:run" \
 
     # update job
