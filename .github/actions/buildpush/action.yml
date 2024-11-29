@@ -45,12 +45,11 @@ runs:
     - name: deploy scheduler
       shell: bash 
       run: |
-        REGION=${{ env.REGION }}
         PROJECT_ID=${{ env.GCP_PROJECT_ID }}
         SERVICE_ACCOUNT=${{ env.SERVICE_ACCOUNT }}
 
         gcloud scheduler jobs create http etl-cron \
-          --location $REGION \
+          --location europe-west1 \
           --schedule="0 2 * * *" \
           --uri="https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/etl:run" \
           --http-method POST \
