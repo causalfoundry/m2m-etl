@@ -1,4 +1,4 @@
-etl:
+app1-etl:
   schedule: '0 2 * * *'
   timezone: utc
   cpu: 2
@@ -6,7 +6,7 @@ etl:
   env: "name=APP1,target=commcare"
 
 
-etl_2:
+app2-etl:
   schedule: '0 2 * * *'
   timezone: utc
   cpu: 2
