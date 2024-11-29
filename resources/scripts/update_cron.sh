@@ -18,10 +18,10 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     yq "
       .metadata.name=\"$NAME\" |
       .metadata.namespace=\"$PROJECT_ID\" |
-      .spec.template.spec.containers[0].image=\"$IMAGE\" |
-      .spec.template.spec.containers[0].resources.limits.cpu=$CPU |
-      .spec.template.spec.containers[0].resources.limits.memory=\"$MEMORY\" |
-      .spec.template.spec.serviceAccountName=\"$SERVICE_ACCOUNT\"
+      .spec.template.spec.template.spec.containers[0].image=\"$IMAGE\" |
+      .spec.template.spec.template.spec.containers[0].resources.limits.cpu=\"$CPU\" |
+      .spec.template.spec.template.spec.containers[0].resources.limits.memory=\"$MEMORY\" |
+      .spec.template.spec.template.spec.serviceAccountName=\"$SERVICE_ACCOUNT\"
     " ./resources/job_template.yml > ./resources/$NAME.yml
     echo '-------------'
     cat ./resources/$NAME.yml
