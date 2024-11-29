@@ -39,8 +39,8 @@ runs:
       shell: bash 
       run: |
         image=${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
-        sed -i "s|<image>|$image|g" ./resource/job.yml
-        gcloud run jobs replace ./resource/job.yml --region $REGION
+        sed -i "s|<image>|$image|g" ./resources/job.yml
+        gcloud run jobs replace ./resources/job.yml --region $REGION
 
     - name: deploy scheduler
       shell: bash 
