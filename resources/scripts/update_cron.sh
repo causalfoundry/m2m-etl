@@ -23,6 +23,8 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
       .spec.template.spec.containers[0].resources.limits.memory=\"$MEMORY\" |
       .spec.template.spec.serviceAccountName=\"$SERVICE_ACCOUNT\"
     " ./resources/job_template.yml > ./resources/$NAME.yml
+    echo '-------------'
+    cat ./resources/$NAME.yml
 
     gcloud run jobs replace ./resources/$NAME.yml --region $REGION
 
