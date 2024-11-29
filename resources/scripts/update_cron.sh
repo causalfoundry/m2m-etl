@@ -4,9 +4,6 @@ file_path=$1
 
 set -e
 
-# some env are inherent from the parent process
-env
-
 yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     # Extract schedule and job_name for each scheduler
     SCHEDULE=$(yq eval ".${NAME}.schedule" $file_path)
