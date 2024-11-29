@@ -2,6 +2,8 @@
 
 file_path=$1
 
+set -e
+
 # some env are inherent from the parent process
 env
 
