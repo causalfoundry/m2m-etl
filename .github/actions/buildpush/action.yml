@@ -35,13 +35,7 @@ runs:
         echo "pushing ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}"
         docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
 
-    - name: configure cron jobs
-      shell: bash 
-      run: |
-        sed -i "s|<image>|$image|g" ./resources/job.yml
-        gcloud run jobs replace ./resources/job.yml --region $REGION
-
-    - name: deploy scheduler1
+    - name: deploy cron
       shell: bash 
       if: ${{ github.ref_name == 'main' }}
       run: |
