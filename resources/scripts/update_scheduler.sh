@@ -14,7 +14,7 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r SCHEDULER; do
     URI="https://$REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$PROJECT_ID/jobs/$JOB:run" \
     
   if gcloud scheduler jobs describe "$SCHEDULER" --location europe-west1 > /dev/null 2>&1; then
-    echo "Scheduler job '$JOB' exists. Updating..."
+    echo "Scheduler job '$SCHEDULER' exists. Updating..."
     gcloud scheduler jobs update http "$SCHEDULER" \
       --location europe-west1 \
       --schedule "$SCHEDULE" \
@@ -22,7 +22,7 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r SCHEDULER; do
       --http-method POST \
       --oauth-service-account-email "$SERVICE_ACCOUNT"
   else
-    echo "Scheduler job '$JOB' does not exist. Creating..."
+    echo "Scheduler job '$SCHEDULER' does not exist. Creating..."
     gcloud scheduler jobs create http "$SCHEDULER" \
       --location europe-west1 \
       --schedule "$SCHEDULE" \
