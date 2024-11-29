@@ -1,6 +1,7 @@
 #!/bin/bash
+# this script is designed to be run from the root of the project
 
-file_path=$1
+file_path=./resources/cron.yml
 
 set -e
 
