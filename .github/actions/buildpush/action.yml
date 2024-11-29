@@ -35,16 +35,17 @@ runs:
         echo "pushing ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}"
         docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
 
-    - name: deploy cloud run
+    - name: configure cron jobs
       shell: bash 
       run: |
-        image=${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
         sed -i "s|<image>|$image|g" ./resources/job.yml
         gcloud run jobs replace ./resources/job.yml --region $REGION
 
-    - name: deploy scheduler
+    - name: deploy scheduler1
       shell: bash 
+      if: ${{ github.ref_name == 'main' }}
       run: |
+        IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
         PROJECT_ID=${{ env.GCP_PROJECT_ID }}
         SERVICE_ACCOUNT=${{ env.SERVICE_ACCOUNT }}
-        ./resources/scripts/update_scheduler.sh ./resources/scheduler.yml
+        ./resources/scripts/update_cron.sh ./resources/scheduler.yml

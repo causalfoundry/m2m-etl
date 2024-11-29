@@ -2,7 +2,7 @@ apiVersion: run.googleapis.com/v1
 kind: Job
 metadata:
   name: etl
-  namespace: '621908232922'
+  namespace: <project_id>
 spec:
   template:
     spec:
@@ -16,5 +16,5 @@ spec:
                 cpu: '2'
                 memory: 4Gi
           maxRetries: 3
-          serviceAccountName: 621908232922-compute@developer.gserviceaccount.com
+          serviceAccountName: <service_account>
           timeoutSeconds: '600'
