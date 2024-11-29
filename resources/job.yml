@@ -1,0 +1,20 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: etl
+  namespace: '621908232922'
+spec:
+  template:
+    spec:
+      taskCount: 1
+      template:
+        spec:
+          containers:
+          - image: <image>
+            resources:
+              limits:
+                cpu: '2'
+                memory: 4Gi
+          maxRetries: 3
+          serviceAccountName: 621908232922-compute@developer.gserviceaccount.com
+          timeoutSeconds: '600'

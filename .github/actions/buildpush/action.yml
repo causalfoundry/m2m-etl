@@ -38,11 +38,9 @@ runs:
     - name: deploy cloud run
       shell: bash 
       run: |
-        gcloud run jobs create etl \
-          --image ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }} \
-          --region $REGION \
-          --memory 4Gi \
-          --cpu 2
+        image=${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
+        sed -i "s/<image>/$image/g" ./resource/job.yml
+        gcloud run jobs replace ./resource/job.yml --region $REGION
 
     - name: deploy scheduler
       shell: bash 
