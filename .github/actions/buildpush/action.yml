@@ -47,4 +47,4 @@ runs:
       run: |
         PROJECT_ID=${{ env.GCP_PROJECT_ID }}
         SERVICE_ACCOUNT=${{ env.SERVICE_ACCOUNT }}
-        ./resources/scripts/update_scheduler ./resource/scheduler.yml
+        ./resources/scripts/update_scheduler.sh ./resource/scheduler.yml
