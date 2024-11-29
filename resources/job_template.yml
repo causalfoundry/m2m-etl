@@ -15,6 +15,7 @@ spec:
               limits:
                 cpu: <cpu>
                 memory: <memory>
+            
           maxRetries: 3
           serviceAccountName: <service_account>
           timeoutSeconds: 600

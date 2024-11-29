@@ -6,7 +6,22 @@ And the containers are run on `Cloud Run`, and is scheduled with `Cloud Schedule
 
 ### Infra Intro
 The pipeline is packaged into docker container, and deployed as `GCP Cloud Run Job`, which is then triggered by `GCP Cloud Scheduler`.
-in the `./resources` folder, `scheduler.yml` file defines the cron job configuration
+in the `./resources` folder, `cron.yml` file defines the cron job configuration. In this format
+```
+<job_name>:
+  schedule: <cron_tab>
+  timezone: <timezone>
+  cpu: <cpu>
+  memory: <args>
+  env:
+    - name: xx
+      value: xx
+```
+This is a complete config defining a pipeline, how much resource, what's the env vars to invoke the container etc.
+And the CI pipeline will take this config, create a `Cloud Run Job`, and a `Cloud Scheduler`
+
+#### Assumption
+All pipeline comes from the same docker image, only difference is the invoking parameters are different
 
 ### Cloud Run deployment example
 ```

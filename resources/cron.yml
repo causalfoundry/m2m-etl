@@ -3,3 +3,16 @@ etl:
   timezone: utc
   cpu: 2
   memory: 4Gi
+  env:
+    - name: ETL_name
+      value: APP1
+
+
+etl_2:
+  schedule: '0 2 * * *'
+  timezone: utc
+  cpu: 2
+  memory: 4Gi
+  env:
+    - name: ETL_name
+      value: APP2
