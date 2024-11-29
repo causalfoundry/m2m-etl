@@ -32,19 +32,16 @@ yq eval '. | keys' $file_path | sed 's/- //' | while read -r NAME; do
     # update scheduler
     if gcloud scheduler jobs describe "$NAME" --location europe-west1 > /dev/null 2>&1; then
       echo "Scheduler job '$NAME' exists. Updating..."
-      gcloud scheduler jobs update http "$NAME" \
-        --location europe-west1 \
-        --schedule "$SCHEDULE" \
-        --uri "$URI" \
-        --http-method POST \
-        --oauth-service-account-email "$SERVICE_ACCOUNT"
+      OP=update
     else
       echo "Scheduler job '$NAME' does not exist. Creating..."
-      gcloud scheduler jobs create http "$NAME" \
+      OP=create
+    fi
+
+      gcloud scheduler jobs $OP http "$NAME" \
         --location europe-west1 \
         --schedule "$SCHEDULE" \
         --uri "$URI" \
         --http-method POST \
         --oauth-service-account-email "$SERVICE_ACCOUNT"
-    fi
 done
