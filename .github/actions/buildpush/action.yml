@@ -39,7 +39,7 @@ runs:
       shell: bash 
       run: |
         gcloud run deploy etl \
-          --image gcr.io/$PROJECT_ID/$IMAGE:$TAG \
+          --image ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }} \
           --platform managed \
           --region $REGION \
           --memory 4Gi \
