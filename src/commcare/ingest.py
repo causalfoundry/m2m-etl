@@ -32,7 +32,7 @@ def ingest_file(query_file: str, date: str) -> Optional[Exception]:
         query_det_file=query_det_file,
         since=date,
         until=u.add_days_to_date(date, 1),
-        output_file=output_xlsx,
+        output_destination=output_xlsx,
     )
     output_parquet = output_xlsx.replace(".xlsx", ".parquet")
     err = u.xlsx_to_parquet(output_xlsx, output_parquet)
@@ -42,17 +42,24 @@ def ingest_file(query_file: str, date: str) -> Optional[Exception]:
     return None
 
 
-def run_commcare_export(query_det_file: str, since: str, until: str, output_file: str):
+def run_commcare_export(
+    query_det_file: str,
+    since: str,
+    until: str,
+    output_destination: str,
+    *,
+    output_format: str = "xlsx",
+):
     command = "commcare-export"
     args = {
-        "--output-format": "xlsx",
+        "--output-format": output_format,
         "--project": "m2m",
         "--username": os.getenv("COMMCARE_USERNAME"),
         "--password": os.getenv("COMMCARE_PASSWORD"),
         "--query": query_det_file,
         "--since": since,
         "--until": until,
-        "--output": output_file,
+        "--output": output_destination,
     }
     cmd = [command] + [str(item) for pair in args.items() for item in pair]
     with open(os.devnull, "wb") as devnull:
