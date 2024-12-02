@@ -19,3 +19,9 @@ def check_env_var(var_name: str) -> Optional[Exception]:
     if os.getenv(var_name) is None:
         return Exception("error the env variable %s is not set" % var_name)
     return None
+
+
+def check_file_exists(file_path: str) -> Optional[Exception]:
+    if not os.path.exists(file_path):
+        return Exception("error file %s does not exist" % file_path)
+    return None
