@@ -1,7 +1,7 @@
 from typing import Optional
 import subprocess
 import os
-import util as u
+from ...util import util as u
 from joblib import Parallel, delayed
 from sqlalchemy import create_engine
 
@@ -12,7 +12,8 @@ def ingest_all(
     err = check_env_vars()
     if err is not None:
         return err
-    all_files = os.listdir("./det_files")
+    src_dir = u.find_src_dir()
+    all_files = os.listdir(os.path.join(src_dir, "streams", "stream1", "det_files"))
     all_files_without_ext = sorted([os.path.splitext(f)[0] for f in all_files])
     results = Parallel(n_jobs=8, backend="loky")(
         delayed(ingest_file)(file, date, format, destination)
@@ -41,9 +42,12 @@ def ingest_file_to_parquet(query_file: str, date: str) -> Optional[Exception]:
     if err is not None:
         return err
 
-    parquet_folder = "./parquet_files/%s" % date.replace("-", "_")
+    src_dir = u.find_src_dir()
+    parquet_folder = os.path.join(
+        src_dir, "streams", "stream1", "parquet_files", date.replace("-", "_")
+    )
     os.makedirs(parquet_folder, exist_ok=True)
-    output_xlsx = "%s/%s.xlsx" % (parquet_folder, query_file)
+    output_xlsx = os.path.join(parquet_folder, "%s.xlsx" % query_file)
 
     run_commcare_export(
         query_det_file=query_det_file,
@@ -63,7 +67,7 @@ def ingest_file_to_parquet(query_file: str, date: str) -> Optional[Exception]:
 def ingest_file_to_sql(
     query_file: str, date: str, destination: str
 ) -> Optional[Exception]:
-    query_det_file = "./det_files/%s.xlsx" % query_file
+    query_det_file = get_det_file(query_file)
     err = u.check_file_exists(query_det_file)
     if err is not None:
         return err
@@ -112,7 +116,10 @@ def run_commcare_export(
 
 
 def get_det_file(query_file: str) -> str:
-    return "./det_files/%s.xlsx" % query_file
+    src_dir = u.find_src_dir()
+    return os.path.join(
+        src_dir, "streams", "stream1", "det_files", "%s.xlsx" % query_file
+    )
 
 
 def check_env_vars() -> Optional[Exception]:

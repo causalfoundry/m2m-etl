@@ -3,6 +3,12 @@ import pandas as pd
 from typing import Optional
 
 
+def find_src_dir():
+    path_split = os.path.abspath(__file__).split("/")
+    src_index = last_index(path_split, "src")
+    return "/".join(path_split[: src_index + 1])
+
+
 def xlsx_to_parquet(input_xlsx: str, output_parquet: str) -> Optional[Exception]:
     try:
         df = pd.read_excel(input_xlsx, engine="openpyxl")
@@ -25,3 +31,9 @@ def check_file_exists(file_path: str) -> Optional[Exception]:
     if not os.path.exists(file_path):
         return Exception("error file %s does not exist" % file_path)
     return None
+
+
+def last_index(lst: list, item: str) -> int:
+    rev_lst = lst[::-1]
+    first_occ = rev_lst.index(item)
+    return len(lst) - first_occ - 1
