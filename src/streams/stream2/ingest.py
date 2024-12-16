@@ -73,19 +73,19 @@ def GetTrackerRawDataWithinDateRange(api: Api, tracker_id: str = None, start_dat
                     "meta": false
                 },
             ],
-            "metaData": {
-                "names": {},
-                "pager": {
-                    "page": 1,
-                    "total": 0,
-                    "pageSize": 50,
-                    "pageCount": 1
-                }
-            },
-            "rows": [],
-            "headerWidth": 13,
-            "width": 0,
-            "height": 0
+        "metaData": {
+            "names": {},
+            "pager": {
+                "page": 1,
+                "total": 0,
+                "pageSize": 50,
+                "pageCount": 1
+            }
+        },
+        "rows": [],
+        "headerWidth": 13,
+        "width": 0,
+        "height": 0
         """
         metadata = resp_data['metaData']['names']
         tmp_dict = {}
