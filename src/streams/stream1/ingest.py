@@ -13,7 +13,8 @@ def ingest_all(
     if err is not None:
         return err
     src_dir = u.find_src_dir()
-    all_files = os.listdir(os.path.join(src_dir, "streams", "stream1", "det_files"))
+    all_files = os.listdir(os.path.join(
+        src_dir, "streams", "stream1", "det_files"))
     all_files_without_ext = sorted([os.path.splitext(f)[0] for f in all_files])
     results = Parallel(n_jobs=8, backend="loky")(
         delayed(ingest_file)(file, date, format, destination)
