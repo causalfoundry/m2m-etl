@@ -3,6 +3,16 @@ import pandas as pd
 from typing import Optional
 
 
+def get_full_path(path: str) -> str:
+    src_dir = find_src_dir()
+    return os.path.join(src_dir, path)
+
+
+def makedirs(folder_from_src: str):
+    src_dir = find_src_dir()
+    return os.makedirs(os.path.join(src_dir, folder_from_src), exist_ok=True)
+
+
 def find_src_dir():
     path_split = os.path.abspath(__file__).split("/")
     src_index = last_index(path_split, "src")
