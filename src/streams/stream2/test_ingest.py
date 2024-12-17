@@ -16,6 +16,7 @@ def test_tracker():
     for id in ret:
         print(id.id, id.display_name)
         tr, err = GetProgramByID(api, id.id)
+        print(json.dumps(tr, indent=4))
         assert err is None
         tr, err = QueryProgramDetails(api, id.id, None, None)
         print(json.dumps(tr, indent=4))
