@@ -14,13 +14,9 @@ def test_tracker():
     assert err is None
 
     for tracker in ret:
-        print('-----------')
         print(tracker.id, tracker.display_name)
         tr, err = GetProgramByID(api, tracker.id)
         assert err is None
-        print('-----------')
-        print(tr.keys(), len(tr.keys()))
         tr, err = GetTrackerRawDataWithinDateRange(api, tracker.id, None, None)
-        break
         # print('-----------')
         # print(tr)

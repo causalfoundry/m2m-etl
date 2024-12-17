@@ -2,6 +2,7 @@ from dhis2 import Api
 from .util import Program, trackers_from_dicts
 from typing import Optional, Tuple
 import pandas as pd
+import json
 
 
 def GetAllPrograms(api: Api, page_size=None) -> Tuple[list[Program], Optional[Exception]]:
@@ -18,24 +19,20 @@ def GetAllPrograms(api: Api, page_size=None) -> Tuple[list[Program], Optional[Ex
 
 
 def GetProgramByID(api: Api, id=None) -> Tuple[dict, Optional[Exception]]:
-    if id:
-        # for raw tracker data by Id
-        query = f'/programs/{id}'
-        response = api.get(query, params={'fields': '*'})
-        return response.json(), None
-    return None, ValueError("tracker_id not specified!")
+    if id is None:
+        return None, ValueError("tracker_id not specified!")
+
+    # for raw tracker data by Id
+    query = f'/programs/{id}'
+    response = api.get(query, params={'fields': '*'})
+    return response.json(), None
 
 
-def GetTrackerRawDataWithinDateRange(api: Api, tracker_id: str = None, start_date=None, end_date=None) -> Tuple[dict, Optional[Exception]]:
+def GetTrackerRawDataWithinDateRange(api: Api, tracker_id: str = None, start_date: str = None, end_date: str = None) -> Tuple[dict, Optional[Exception]]:
     """
-            possibly to implement a date format checker as well for 
-            start_date and end_date using datetime
-
-            Accepts YYYY-MM-DD format for now.
-
-            args:
-                    how you structure the params field determines the URL that will be constructed by
-                    the dhis2 api
+    possibly to implement a date format checker as well for
+    start_date and end_date using datetime
+    start/end_date accepts YYYY-MM-DD format for now.
     """
     if (start_date is None) ^ (end_date is None):
         return {}, ValueError(
@@ -51,7 +48,6 @@ def GetTrackerRawDataWithinDateRange(api: Api, tracker_id: str = None, start_dat
     # Display name of the tracker:
     tracker_name = dataset['name']
     # logging.info(tracker_name)
-    response_per_id = []
     for org_id in dataset['organisationUnits']:
         response = api.get('trackedEntityInstances/query', params={
             'ou': org_id["id"],
@@ -88,26 +84,18 @@ def GetTrackerRawDataWithinDateRange(api: Api, tracker_id: str = None, start_dat
         "height": 0
         """
         metadata = resp_data['metaData']['names']
-        tmp_dict = {}
+        ret = {}
         headers = resp_data["headers"]
-        return None, None
-        for col, (_, rows) in zip(headers, enumerate(resp_data["rows"])):
-            tmp_dict[col["column"]] = []
-        for col, (i, rows) in zip(tmp_dict.keys(), enumerate(resp_data["rows"])):
-            if len(rows) > 1:
-                tmp_dict[col].append(f"{rows[i]}")
-            elif len(rows) == 0:
-                tmp_dict[col].append([])
-        if len(tmp_dict) > 1:
-            dfs = pd.DataFrame.from_dict(tmp_dict)
-            dfs["Tracked entity name"] = list(metadata.values())[0]
-            dfs["Tracker id"] = tracker_id
-            dfs["Tracker displayName"] = tracker_name
-            if "Telephone number" in dfs.columns:
-                # if the numbers are nine put zero in the first position of phone number
-                dfs["Telephone number"] = dfs["Telephone number"].astype(
-                    str).str.zfill(10).fillna('0')
-            # logging.info(dfs)
-            response_per_id.append(dfs)
-
-    return [pd.DataFrame(resp) for resp in response_per_id], None
+        row_n = len(resp_data["rows"])
+        for (i, column) in enumerate(headers):
+            col = column['name']
+            for row in resp_data["rows"]:
+                if col not in ret:
+                    ret[col] = []
+                ret[col].append(row[i])
+            if len(ret) > 0:
+                ret['Tracked entity name'] = list(
+                    metadata.values()) * row_n
+                ret['Tracker id'] = [tracker_id] * row_n
+                ret['Tracker display name'] = [tracker_name] * row_n
+    return ret, None
