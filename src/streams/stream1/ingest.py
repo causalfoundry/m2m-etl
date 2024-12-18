@@ -6,18 +6,17 @@ from joblib import Parallel, delayed
 from sqlalchemy import create_engine
 
 
-def ingest_all(
-    date: str, *, format: str = "parquet", destination: str = None
+def ingest_all_forms(
+    since: str, until: str, format: str, destination: str
 ) -> Optional[Exception]:
     err = check_env_vars()
     if err is not None:
         return err
-    src_dir = u.find_src_dir()
-    all_files = os.listdir(os.path.join(src_dir, "streams", "stream1", "det_files"))
-    all_files_without_ext = sorted([os.path.splitext(f)[0] for f in all_files])
+    all_det_files = os.listdir(get_det_folder())
+    all_queries = sorted([os.path.splitext(f)[0] for f in all_det_files])
     results = Parallel(n_jobs=8, backend="loky")(
-        delayed(ingest_file)(file, date, format, destination)
-        for file in all_files_without_ext
+        delayed(ingest_form)(query_file, since, until, format, destination)
+        for query_file in all_queries
     )
     errors = [err for err in results if err is not None]
     if errors:
@@ -25,37 +24,64 @@ def ingest_all(
     return None
 
 
-def ingest_file(
-    query_file: str, date: str, format: str, destination: str
+def ingest_form(
+    query_file: str, since: str, until: str, format: str, destination: str
 ) -> Optional[Exception]:
-    if format == "parquet":
-        return ingest_file_to_parquet(query_file, date)
-    elif format == "sql":
-        return ingest_file_to_sql(query_file, date, destination)
-    else:
-        return Exception("invalid format %s" % format)
-
-
-def ingest_file_to_parquet(query_file: str, date: str) -> Optional[Exception]:
     query_det_file = get_det_file(query_file)
     err = u.check_file_exists(query_det_file)
     if err is not None:
         return err
 
-    src_dir = u.find_src_dir()
-    parquet_folder = os.path.join(
-        src_dir, "streams", "stream1", "parquet_files", date.replace("-", "_")
+    if format not in ["xlsx", "parquet", "sql"]:
+        return Exception("invalid format %s" % format)
+
+    if format == "sql":
+        return ingest_form_in_sql(query_file, since, until, destination)
+
+    if destination is None:
+        return Exception(
+            "destination is required, it should be the folder from src if format is not sql"
+        )
+
+    destination_file = os.path.join(
+        destination, get_target_filename(query_file, since, until, format)
     )
-    os.makedirs(parquet_folder, exist_ok=True)
-    output_xlsx = os.path.join(parquet_folder, "%s.xlsx" % query_file)
+
+    if format == "xlsx":
+        return ingest_form_in_xlsx(query_file, since, until, destination_file)
+    else:
+        return ingest_form_in_parquet(query_file, since, until, destination_file)
+
+
+def ingest_form_in_xlsx(
+    query_file: str, since: str, until: str, destination_file_from_src: str
+) -> Optional[Exception]:
+    u.makedirs(os.path.dirname(destination_file_from_src))
 
     run_commcare_export(
-        query_det_file=query_det_file,
-        since=date,
-        until=u.add_days_to_date(date, 1),
-        output_destination=output_xlsx,
+        query_det_file=get_det_file(query_file),
+        since=since,
+        until=until,
+        output_destination=u.get_full_path(destination_file_from_src),
+        output_format="xlsx",
     )
+    return None
 
+
+def ingest_form_in_parquet(
+    query_file: str, since: str, until: str, destination_file_from_src: str
+) -> Optional[Exception]:
+    destination_xlsx = destination_file_from_src.replace(".parquet", ".xlsx")
+    err = ingest_form_in_xlsx(
+        query_file,
+        since,
+        until,
+        destination_xlsx,
+    )
+    if err is not None:
+        return err
+
+    output_xlsx = u.get_full_path(destination_xlsx)
     output_parquet = output_xlsx.replace(".xlsx", ".parquet")
     err = u.xlsx_to_parquet(output_xlsx, output_parquet)
     if err is not None:
@@ -64,21 +90,17 @@ def ingest_file_to_parquet(query_file: str, date: str) -> Optional[Exception]:
     return None
 
 
-def ingest_file_to_sql(
-    query_file: str, date: str, destination: str
+def ingest_form_in_sql(
+    query_file: str, since: str, until: str, destination: str
 ) -> Optional[Exception]:
-    query_det_file = get_det_file(query_file)
-    err = u.check_file_exists(query_det_file)
-    if err is not None:
-        return err
     try:
         _ = create_engine(destination)
     except Exception as e:
         return e
     run_commcare_export(
-        query_det_file=query_det_file,
-        since=date,
-        until=u.add_days_to_date(date, 1),
+        query_det_file=get_det_file(query_file),
+        since=since,
+        until=until,
         output_destination=destination,
         output_format="sql",
     )
@@ -90,8 +112,7 @@ def run_commcare_export(
     since: str,
     until: str,
     output_destination: str,
-    *,
-    output_format: str = "xlsx",
+    output_format: str,
 ):
     command = "commcare-export"
     args = {
@@ -115,11 +136,22 @@ def run_commcare_export(
         )
 
 
-def get_det_file(query_file: str) -> str:
-    src_dir = u.find_src_dir()
-    return os.path.join(
-        src_dir, "streams", "stream1", "det_files", "%s.xlsx" % query_file
+def get_target_filename(query_file: str, since: str, until: str, format: str) -> str:
+    return "%s_%s_%s.%s" % (
+        query_file,
+        since.replace("-", "_"),
+        until.replace("-", "_"),
+        format,
     )
+
+
+def get_det_folder() -> str:
+    src_dir = u.find_src_dir()
+    return os.path.join(src_dir, "streams", "stream1", "det_files")
+
+
+def get_det_file(query_file: str) -> str:
+    return os.path.join(get_det_folder(), "%s.xlsx" % query_file)
 
 
 def check_env_vars() -> Optional[Exception]:
