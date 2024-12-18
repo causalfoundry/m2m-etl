@@ -24,8 +24,41 @@ def ingest_all_forms(
     return None
 
 
+def ingest_form_for_year(
+    query_file: str, year: int, format: str, destination: str
+) -> Optional[Exception]:
+    err = check_env_vars()
+    if err is not None:
+        return err
+    results = Parallel(n_jobs=12, backend="loky")(
+        delayed(ingest_form_for_month)(query_file, year, month, format, destination)
+        for month in range(1, 13)
+    )
+    errors = [err for err in results if err is not None]
+    if errors:
+        return Exception("\n".join([str(err) for err in errors]))
+    return None
+
+
+def ingest_form_for_month(
+    query_file: str, year: int, month: int, format: str, destination: str
+) -> Optional[Exception]:
+    err = check_env_vars()
+    if err is not None:
+        return err
+    since = u.get_first_date_of_month(year, month)
+    until = u.get_first_date_of_next_month(year, month)
+    target_file_name = get_target_filename_for_month(query_file, year, month, format)
+    return ingest_form(query_file, since, until, format, destination, target_file_name)
+
+
 def ingest_form(
-    query_file: str, since: str, until: str, format: str, destination: str
+    query_file: str,
+    since: str,
+    until: str,
+    format: str,
+    destination: str,
+    target_file_name: str = None,
 ) -> Optional[Exception]:
     query_det_file = get_det_file(query_file)
     err = u.check_file_exists(query_det_file)
@@ -43,9 +76,10 @@ def ingest_form(
             "destination is required, it should be the folder from src if format is not sql"
         )
 
-    destination_file = os.path.join(
-        destination, get_target_filename(query_file, since, until, format)
-    )
+    if target_file_name is None:
+        target_file_name = get_target_filename(query_file, since, until, format)
+
+    destination_file = os.path.join(destination, target_file_name)
 
     if format == "xlsx":
         return ingest_form_in_xlsx(query_file, since, until, destination_file)
@@ -134,6 +168,17 @@ def run_commcare_export(
             stdout=devnull,
             stderr=devnull,
         )
+
+
+def get_target_filename_for_month(
+    query_file: str, year: int, month: int, format: str
+) -> str:
+    return "%s_%d_%d.%s" % (
+        query_file,
+        year,
+        month,
+        format,
+    )
 
 
 def get_target_filename(query_file: str, since: str, until: str, format: str) -> str:
