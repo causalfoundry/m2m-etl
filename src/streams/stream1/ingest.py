@@ -24,6 +24,22 @@ def ingest_all_forms(
     return None
 
 
+def ingest_form_for_year(
+    query_file: str, year: int, format: str, destination: str
+) -> Optional[Exception]:
+    err = check_env_vars()
+    if err is not None:
+        return err
+    results = Parallel(n_jobs=12, backend="loky")(
+        delayed(ingest_form_for_month)(query_file, year, month, format, destination)
+        for month in range(1, 13)
+    )
+    errors = [err for err in results if err is not None]
+    if errors:
+        return Exception("\n".join([str(err) for err in errors]))
+    return None
+
+
 def ingest_form_for_month(
     query_file: str, year: int, month: int, format: str, destination: str
 ) -> Optional[Exception]:
