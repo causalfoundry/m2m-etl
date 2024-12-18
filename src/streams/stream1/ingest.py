@@ -27,6 +27,9 @@ def ingest_all_forms(
 def ingest_form_for_month(
     query_file: str, year: int, month: int, format: str, destination: str
 ) -> Optional[Exception]:
+    err = check_env_vars()
+    if err is not None:
+        return err
     since = u.get_first_date_of_month(year, month)
     until = u.get_first_date_of_next_month(year, month)
     target_file_name = get_target_filename_for_month(query_file, year, month, format)
