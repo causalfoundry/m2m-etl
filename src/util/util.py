@@ -1,6 +1,17 @@
 import os
 import pandas as pd
 from typing import Optional
+import datetime
+
+
+def get_first_date_of_month(year, month) -> str:
+    return datetime.date(year, month, 1).strftime("%Y-%m-%d")
+
+
+def get_first_date_of_next_month(year, month) -> str:
+    if month == 12:
+        return datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
+    return datetime.date(year, month + 1, 1).strftime("%Y-%m-%d")
 
 
 def get_full_path(path: str) -> str:
